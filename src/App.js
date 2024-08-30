@@ -17,6 +17,7 @@ import {Heatmap as HeatmapLayer} from "ol/layer";
 import { Cluster } from "ol/source";
 import { Select } from 'antd'; // Import Ant Design Select
 import jsonData from "./components/jsonData"
+import ArcGis from "./components/arcGis"
 
 const { Option } = Select;
 
@@ -38,6 +39,7 @@ const MyComponent = () => {
   const [isClustered, setIsClustered] = useState(false);
   const [clusterLayers,setIsClusterLayers] = useState(null);
   const [himapLayer,setIsHeatmapLayer] = useState(null);
+  const [toggleApi,setToggleApi] = useState(false);
 
 
   
@@ -183,7 +185,7 @@ const MyComponent = () => {
     };
 
     fetchData();
-  }, []);
+  }, [toggleApi]);
 
   const styleFunction = (feature) => {
     const featureType = feature.getGeometry().getType();
@@ -350,13 +352,11 @@ const MyComponent = () => {
 
     if (data && map) {
       
-
       const showBorder = new VectorSource({
         features: new GeoJSON().readFeatures(data, {
           featureProjection: 'EPSG:3857',
         }),
       });
-
 
       const newVectorLayer = new VectorLayer({
         source: showBorder,
@@ -373,7 +373,6 @@ const MyComponent = () => {
 
       setVectorLayer(newVectorLayer);
     }
-
 
     if (populatedPlace && map) {
       const populatedPlaceSource = new VectorSource({
@@ -395,23 +394,24 @@ const MyComponent = () => {
       setPopulatedPlaceLayer(newPopulatedPlaceLayer);
     }
 
-  }, [data, map, layerColor,populatedPlace]);
+  }, [data, map, layerColor,populatedPlace,toggleApi]);
 
   useEffect(() => {
     if (vectorLayer) {
       vectorLayer.setVisible(showRoads);
-  
       const existingLayer = map.getLayers().getArray().find(layer => layer === vectorLayer);
   
       if (showRoads && !existingLayer) {
-        
+       
         map.addLayer(vectorLayer);
       } else if (!showRoads && existingLayer) {
+        debugger
         map.removeLayer(vectorLayer);
+        
       }
     }
   }, [showRoads, vectorLayer, map]);
-
+  // setLayerColor('#ffff');
 
   useEffect(() => {
     if (populatedPlaceLayer) {
@@ -425,11 +425,6 @@ const MyComponent = () => {
       }
     }
   }, [showPopulatedPlace, populatedPlaceLayer, map]);
-
-
-
-  
-  
    
       // const toggleCluster = useCallback(() => {
       //   if (map) {
@@ -484,15 +479,30 @@ const MyComponent = () => {
   }, [map, currentLocation]);
 
   const handleColorChange = (value) => {
-    setLayerColor(value); // Update the layer color based on the dropdown value
+      setLayerColor(value); 
   };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
+  const toggleApis = () =>{
+    setToggleApi(prev=>!prev)
+  }
+
   return (
     <div>
-      <div ref={mapRef} style={{ width: '100%', height: '100vh' }}></div>
+      <div style={{ 
+          position: 'absolute',
+          top: '10px',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '10px',
+          borderRadius: '5px',
+          zIndex: 1000,}}>
+       <button onClick={toggleApis} style={{ position: "absolute", top: "10px", left: "10px" }}>
+        Toggle ArcGis/OpenLayer
+      </button>
+      </div>
+      {toggleApi ? <><ArcGis/></> : <>  <div ref={mapRef} style={{ width: '100%', height: '100vh' }}></div>
       <div
         style={{
           position: 'absolute',
@@ -537,6 +547,7 @@ const MyComponent = () => {
           <Option value="#ff0000">Red</Option>
           <Option value="#00ff00">Green</Option>
           <Option value="#0000ff">Blue</Option>
+          <Option value="#fffff">Default</Option>
         </Select>
 
         {coordinates && (
@@ -547,6 +558,7 @@ const MyComponent = () => {
           </div>
         )}
       </div>
+      </>}
     </div>
   );
 };
