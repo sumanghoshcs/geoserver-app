@@ -18,8 +18,12 @@ import { Cluster } from "ol/source";
 import { Select } from 'antd'; // Import Ant Design Select
 import jsonData from "./components/jsonData"
 import ArcGis from "./components/arcGis"
+import GeoTiff from "./components/geoTiff"
+import NewGeoTiffs from "./components/geoTiff/newGeotiff"
+import GeoTiffDrive from "./components/geoTiff/geotiffdrive"
 
 const { Option } = Select;
+
 
 
 const MyComponent = () => {
@@ -40,6 +44,7 @@ const MyComponent = () => {
   const [clusterLayers,setIsClusterLayers] = useState(null);
   const [himapLayer,setIsHeatmapLayer] = useState(null);
   const [toggleApi,setToggleApi] = useState(false);
+  const [rasterImage, setRasterImage] = useState(null)
 
 
   
@@ -176,7 +181,10 @@ const MyComponent = () => {
         const styleResponse = await axios.get('http://localhost:8080/geoserver/ne/wms?service=WMS&version=1.1.0&request=GetMap&layers=ne%3Apopulated_places&bbox=-175.2205644999999%2C-41.29206799231509%2C179.2166470999999%2C64.14345946317033&width=768&height=330&srs=EPSG%3A4326&styles=&format=geojson')
         const populatedPlaceData = styleResponse.data
         setPopulatedPlace(populatedPlaceData)
-       
+
+        const rasterImageResponse = await axios.get('http://localhost:8080/geoserver/sf/wms?service=WMS&version=1.1.0&request=GetMap&layers=sf%3Asfdem&bbox=589980.0%2C4913700.0%2C609000.0%2C4928010.0&width=768&height=577&srs=EPSG%3A26713&styles=&format=geojson')
+        const rasterImageData = rasterImageResponse.data
+        setRasterImage(rasterImageData)
       } catch (err) {
         setError(err.message); // Capture any errors
       } finally {
@@ -228,7 +236,7 @@ const MyComponent = () => {
       });
 
 
-      let defaultLocation = [87.325320, 22.415280];
+      let defaultLocation = [87.44, 22.77];
 
       const newView = new View({
         center: fromLonLat(defaultLocation),
@@ -335,7 +343,7 @@ const MyComponent = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setCurrentLocation([longitude, latitude]);
+          setCurrentLocation([87.61, 22.75]);
           initialMap.getView().setCenter(fromLonLat([longitude, latitude]));
           initialMap.getView().setZoom(12);
         },
@@ -491,7 +499,12 @@ const MyComponent = () => {
 
   return (
     <div>
-      <div style={{ 
+      {/* <GeoTiff/>
+      
+      */}
+     <GeoTiffDrive/>
+      {/* <NewGeoTiffs/> */}
+      {/* <div style={{ 
           position: 'absolute',
           top: '10px',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
@@ -558,7 +571,7 @@ const MyComponent = () => {
           </div>
         )}
       </div>
-      </>}
+      </>} */}
     </div>
   );
 };
